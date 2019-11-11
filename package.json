@@ -1,0 +1,8 @@
+{
+  "name": "@loopmode/scss-variate",
+  "version": "1.0.0",
+  "main": "mixin.scss",
+  "repository": "git@github.com:loopmode/scss-variate.git",
+  "author": "Jovica Aleksic <jovica.aleksic@etecture.de>",
+  "license": "MIT"
+}
