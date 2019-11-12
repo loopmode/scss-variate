@@ -16,12 +16,12 @@
 $default_sizes: (0px, 5px, 10px, 20px, 40px, 80px, auto);
 $default_variations: ("", "top", "left", "bottom", "right");
 
-@function __variate__str-replace($string, $search, $replace: "") {
+@function __str-replace($string, $search, $replace: "") {
   $index: str-index($string, $search);
 
   @if $index {
     @return str-slice($string, 1, $index - 1) + $replace +
-      __variate__str-replace(
+      __str-replace(
         str-slice($string, $index + str-length($search)),
         $search,
         $replace
@@ -31,11 +31,19 @@ $default_variations: ("", "top", "left", "bottom", "right");
   @return $string;
 }
 
-@function ____variate__strip-zero-units($number) {
+@function __strip-zero-units($number) {
   @if type-of($number) == "number" and $number * 2 == $number {
     @return 0;
   }
   @return $number;
+}
+
+@function __clean-classname($size) {
+  // replace dots: for margin and 0.5em, output .m-0_5em (and not .m-0.5rem)
+  $result: $size;
+  $result: __str-replace("#{$result}", ".", "_");
+  $result: __str-replace("#{$result}", "%", "p");
+  @return $result;
 }
 
 @mixin variate(
@@ -47,31 +55,33 @@ $default_variations: ("", "top", "left", "bottom", "right");
   // allow falsey values to use defaults, for e.g variations(margin, null, null, true)
   $sizes: if($sizes, $sizes, $default_sizes);
   $variations: if($variations, $variations, $default_variations);
+  @if length($sizes) > 0 and $sizes != "" {
+    @each $size in $sizes {
+      @each $variation in $variations {
+        $styleLetter: str-slice($style, 0, 1);
+        $sideLetter: str-slice($variation, 0, 1);
+        $sizeIndex: index($sizes, $size) - 1;
 
-  @each $size in $sizes {
-    @each $variation in $variations {
-      $styleLetter: str-slice($style, 0, 1);
-      $sideLetter: str-slice($variation, 0, 1);
-      $sizeIndex: index($sizes, $size) - 1;
+        $indexClassName: $styleLetter + $sideLetter + "-" + $sizeIndex;
 
-      $indexClassName: $styleLetter + $sideLetter + "-" + $sizeIndex;
-      $unitClassName: $styleLetter +
-        $sideLetter +
-        "-" +
-        __variate__str-replace("#{$size}", ".", "_");
+        $unitClassName: $styleLetter +
+          $sideLetter +
+          "-" +
+          __clean-classname($size);
 
-      $className: if(
-        $withUnits,
-        "#{$indexClassName}, .#{$unitClassName}",
-        $indexClassName
-      );
+        $className: null;
+        @if $withUnits and $indexClassName != $unitClassName {
+          $className: "#{$indexClassName}, .#{$unitClassName}";
+        } @else {
+          $className: $indexClassName;
+        }
 
-      $className: if(type-of($size) == string, $unitClassName, $className);
-      $value: if(type-of($size) == number, ____variate__strip-zero-units($size), $size);
-
-      .#{$className} {
-        $styleName: if($variation == "", $style, #{$style}-#{$variation});
-        #{$styleName}: $value;
+        $className: if(type-of($size) == string, $unitClassName, $className);
+        $value: if(type-of($size) == number, __strip-zero-units($size), $size);
+        .#{$className} {
+          $styleName: if($variation == "", $style, #{$style}-#{$variation});
+          #{$styleName}: $value;
+        }
       }
     }
   }
