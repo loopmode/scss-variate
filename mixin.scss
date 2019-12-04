@@ -46,6 +46,18 @@ $default_variations: ("", "top", "left", "bottom", "right");
   @return $result;
 }
 
+// https://stackoverflow.com/a/42295154/368254
+@function __str-split($string, $separator) {
+  $i: str-index($string, $separator);
+  @if $i != null {
+    @return append(
+      str-slice($string, 1, $i - 1),
+      __str-split(str-slice($string, $i + str-length($separator)), $separator)
+    );
+  }
+  @return $string;
+}
+
 @mixin variate(
   $style,
   $sizes: $default_sizes,
@@ -58,7 +70,16 @@ $default_variations: ("", "top", "left", "bottom", "right");
   @if length($sizes) > 0 and $sizes != "" {
     @each $size in $sizes {
       @each $variation in $variations {
-        $styleLetter: str-slice($style, 0, 1);
+        $styleLetter: "";
+        @if (str-index($style, "-")) {
+          $styleLetter: "";
+          $parts: __str-split($style, "-");
+          @each $p in $parts {
+            $styleLetter: "#{$styleLetter}#{str-slice($p, 0, 1)}";
+          }
+        } @else {
+          $styleLetter: str-slice($style, 0, 1);
+        }
         $sideLetter: str-slice($variation, 0, 1);
         $sizeIndex: index($sizes, $size) - 1;
 

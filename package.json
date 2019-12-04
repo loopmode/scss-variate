@@ -1,6 +1,6 @@
 {
   "name": "@loopmode/scss-variate",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "mixin.scss",
   "repository": "github:loopmode/scss-variate",
   "homepage": "https://github.com/loopmode/scss-variate/blob/master/README.md",
